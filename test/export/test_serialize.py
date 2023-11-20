@@ -11,7 +11,7 @@ import zipfile
 
 import torch
 import torch._dynamo as torchdynamo
-from torch._export import export, save, load
+from torch._export import export, save, load, Dim
 from torch._export.db.case import ExportCase, normalize_inputs, SupportLevel
 from torch._export.db.examples import all_examples
 from torch._export.serde.serialize import (
@@ -439,6 +439,19 @@ class TestDeserialize(TestCase):
                 return a + b[0]
 
         self.check_graph(M(), (torch.rand(3, 2), torch.rand(3, 2)))
+
+    def test_list_of_optional_tensors(self) -> None:
+        class MyModule(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x, y, z):
+                indices = [None, None, torch.tensor([1, 3, 5, 7])]
+                indexed = torch.ops.aten.index.Tensor(x + y, indices)
+                return indexed + z
+
+        inputs = (torch.rand(8, 8, 8), torch.rand(8, 8, 8), torch.rand(8, 8, 4))
+        self.check_graph(MyModule(), inputs)
 
     @parametrize(
         "name,case",
