@@ -7,11 +7,11 @@ import torch
 from torch._export import ExportedProgram
 
 from torch.utils._pytree import (
-    _register_pytree_node,
     Context,
     DumpableContext,
     FlattenFunc,
     FromDumpableContextFn,
+    register_pytree_node,
     ToDumpableContextFn,
     tree_flatten,
     UnflattenFunc,
@@ -63,16 +63,16 @@ def register_dataclass_as_pytree_node(
     flatten_fn: Optional[FlattenFunc] = None,
     unflatten_fn: Optional[UnflattenFunc] = None,
     *,
+    serialized_type_name: Optional[str] = None,
     to_dumpable_context: Optional[ToDumpableContextFn] = None,
     from_dumpable_context: Optional[FromDumpableContextFn] = None,
-    serialized_type_name: Optional[str] = None,
     return_none_fields: bool = False,
 ) -> None:
     assert dataclasses.is_dataclass(
         cls
     ), f"Only dataclasses can be registered with this function: {cls}"
 
-    serialized_type = f"{cls.__module__}.{cls.__name__}"
+    serialized_type = f"{cls.__module__}.{cls.__qualname__}"
     SERIALIZED_DATACLASS_TO_PYTHON_DATACLASS[serialized_type] = cls
 
     def default_flatten_fn(obj: Any) -> Tuple[List[Any], Context]:
@@ -122,7 +122,7 @@ def register_dataclass_as_pytree_node(
         else default_from_dumpable_context
     )
 
-    _register_pytree_node(
+    register_pytree_node(
         cls,
         flatten_fn,
         unflatten_fn,
