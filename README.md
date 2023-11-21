@@ -371,7 +371,7 @@ You can pass `PYTHON_VERSION=x.y` make variable to specify which Python version 
 unset to use the default.
 
 ```bash
-make -f docker.Makefile
+make -f docker.Makefile -n --just-print DOCKER_ORG=lanzhiwang
 # images are tagged as docker.io/${your_docker_username}/pytorch
 ```
 
